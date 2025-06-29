@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, useAnimation, AnimatePresence, useInView } from "framer-motion"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   Calendar,
@@ -24,253 +24,9 @@ import {
   Github,
 } from "lucide-react"
 import Link from "next/link"
-import React from "react"
-import { Card, CardContent } from "@/components/ui/card"
-
-// CountUp component for animated statistics
-function CountUp({ end, duration = 2, className = "" }: { end: number; duration?: number; className?: string }) {
-  const ref = React.useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.7 })
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    if (!isInView) return
-    let start = 0
-    const step = (timestamp: number) => {
-      if (!ref.current) return
-      const progress = Math.min((timestamp / (duration * 1000)), 1)
-      setCount(Math.floor(progress * end))
-      if (progress < 1) {
-        requestAnimationFrame(step)
-      } else {
-        setCount(end)
-      }
-    }
-    requestAnimationFrame(step)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInView, end, duration])
-
-  return (
-    <span ref={ref} className={className}>{count.toLocaleString()}+</span>
-  )
-}
-
-// Particle component for floating background particles
-function Particle({ x, y, size, color, delay }: { x: number; y: number; size: number; color: string; delay: number }) {
-  return (
-    <motion.div
-      className="absolute rounded-full opacity-60"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        width: `${size}px`,
-        height: `${size}px`,
-        backgroundColor: color,
-      }}
-      animate={{
-        y: [0, -20, 0],
-        opacity: [0.6, 1, 0.6],
-        scale: [1, 1.2, 1],
-      }}
-      transition={{
-        duration: 4,
-        repeat: Infinity,
-        delay,
-        ease: "easeInOut"
-      }}
-    />
-  )
-}
-
-// Particle system component
-function ParticleSystem() {
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string; delay: number }>>([])
-
-  useEffect(() => {
-    const generated = Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 1,
-      color: ['#ffffff', '#cccccc', '#999999', '#666666'][Math.floor(Math.random() * 4)],
-      delay: Math.random() * 2
-    }))
-    setParticles(generated)
-  }, [])
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {particles.map((particle) => (
-        <Particle key={particle.id} {...particle} />
-      ))}
-    </div>
-  )
-}
-
-// Animated wave divider component
-function AnimatedWave({ className = "" }: { className?: string }) {
-  return (
-    <div className={`w-full ${className}`}>
-      <svg className="w-full h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
-        <motion.path
-          d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-          fill="currentColor"
-          className="text-gray-500/20"
-          animate={{
-            d: [
-              "M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z",
-              "M0,0V30.29c47.79,18.2,103.59,28.17,158,24,70.36-4.37,136.33-25.31,206.8-29.5C438.64,20.43,512.34,35.67,583,44.05c69.27,12,138.3,16.88,209.4,8.08,36.15-4,69.85-12.84,104.45-20.34C989.49,15,1113-10.29,1200,34.47V0Z",
-              "M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-            ]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </svg>
-    </div>
-  )
-}
-
-// 3D Tilt hook for event cards
-function use3DTilt() {
-  const [style, setStyle] = useState({})
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    const card = e.currentTarget
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = ((y - centerY) / centerY) * 10
-    const rotateY = ((x - centerX) / centerX) * -10
-    setStyle({
-      transform: `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`
-    })
-  }
-  const handleMouseLeave = () => {
-    setStyle({ transform: "perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)" })
-  }
-  return { style, handleMouseMove, handleMouseLeave }
-}
-
-// Magnetic button variants
-const magneticVariants = {
-  hover: { 
-    scale: 1.05, 
-    transition: { duration: 0.2 } 
-  }
-}
-
-// Flip card variants
-const flipVariants = {
-  front: { rotateY: 0 },
-  back: { rotateY: 180 }
-}
-
-// Ripple button effect
-const RippleButton = ({ children, className = "", ...props }: { children?: React.ReactNode; className?: string; [key: string]: any }) => {
-  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])
-  
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const id = Date.now()
-    
-    setRipples(prev => [...prev, { id, x, y }])
-    setTimeout(() => setRipples(prev => prev.filter(ripple => ripple.id !== id)), 600)
-  }
-  
-  return (
-    <button 
-      className={`relative overflow-hidden ${className}`} 
-      onClick={handleClick}
-      {...props}
-    >
-      {children}
-      {ripples.map(ripple => (
-        <motion.span
-          key={ripple.id}
-          className="absolute rounded-full bg-white/30"
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            width: 0,
-            height: 0,
-          }}
-          animate={{
-            width: 300,
-            height: 300,
-            x: -150,
-            y: -150,
-            opacity: [1, 0],
-          }}
-          transition={{ duration: 0.6 }}
-        />
-      ))}
-    </button>
-  )
-}
 
 export default function ESYALandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {}
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Animation variants for staggered card animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.1
-      }
-    }
-  }
-
-  const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 50,
-      scale: 0.9
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { 
-        duration: 0.6
-      }
-    }
-  }
-
-  const iconVariants = {
-    hidden: { 
-      scale: 0,
-      rotate: -180
-    },
-    visible: {
-      scale: 1,
-      rotate: 0,
-      transition: {
-        duration: 0.5,
-        delay: 0.3
-      }
-    }
-  }
-
-  // Glitch text effect variants
-  const glitchVariants = {
-    hover: {
-      x: [0, -2, 2, 0],
-      filter: ["hue-rotate(0deg)", "hue-rotate(90deg)", "hue-rotate(0deg)"],
-      transition: { duration: 0.3, repeat: 2 }
-    }
-  }
 
   const events = [
     {
@@ -332,63 +88,6 @@ export default function ESYALandingPage() {
       opacity: 1, y: 0, scale: 1,
       transition: { stiffness: 500, damping: 30 }
     }
-  }
-
-  // Event Card component with 3D tilt
-  function EventCard({ event, index }: { event: any; index: number }) {
-    const tilt = use3DTilt()
-    
-    return (
-      <motion.div
-        className="bg-gray-900/50 border-2 border-gray-700 hover:border-cyan-400/80 transition-all duration-300 group rounded-lg shadow-lg"
-        variants={cardVariants}
-        style={tilt.style}
-        onMouseMove={tilt.handleMouseMove}
-        onMouseLeave={tilt.handleMouseLeave}
-        whileHover={{
-          boxShadow: "0 0 32px 4px #666666, 0 0 64px 8px #999999",
-          transition: { duration: 0.2 }
-        }}
-        whileTap={{ scale: 0.98 }}
-      >
-        <motion.div className="p-8">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <motion.div
-                className="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-lg group-hover:from-cyan-500/30 group-hover:to-purple-500/30 transition-all"
-                variants={iconVariants}
-                whileHover={{
-                  scale: 1.1,
-                  rotate: 5,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                {event.icon}
-              </motion.div>
-              <div>
-                <h3 className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors">
-                  {event.title}
-                </h3>
-                <Badge variant="outline" className="text-purple-400 border-purple-400/50 mt-1">
-                  {event.category}
-                </Badge>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-400">Prize Pool</div>
-              <div className="text-xl font-bold text-green-400">{event.prize}</div>
-            </div>
-          </div>
-          <p className="text-gray-300 mb-6 leading-relaxed">{event.description}</p>
-          <RippleButton
-            className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400 hover:text-black group-hover:border-cyan-400 transition-all bg-transparent px-4 py-2 rounded-md border"
-          >
-            Learn More
-            <ArrowRight className="ml-2 h-4 w-4 inline" />
-          </RippleButton>
-        </motion.div>
-      </motion.div>
-    )
   }
 
   return (
@@ -460,15 +159,12 @@ export default function ESYALandingPage() {
           {/* Geometric Shapes */}
           <div
             className="absolute top-20 left-10 w-32 h-32 border-4 border-cyan-400/30 rotate-45 animate-pulse"
-            style={{ transform: `translateY(${scrollY * 0.1}px) rotate(45deg)` }}
           />
           <div
             className="absolute top-40 right-20 w-24 h-24 bg-purple-500/20 rotate-12"
-            style={{ transform: `translateY(${scrollY * -0.15}px) rotate(12deg)` }}
           />
           <div
             className="absolute bottom-40 left-1/4 w-16 h-16 border-2 border-green-400/40 rounded-full animate-bounce"
-            style={{ transform: `translateY(${scrollY * 0.08}px)` }}
           />
 
           {/* Circuit Pattern */}
@@ -545,7 +241,15 @@ export default function ESYALandingPage() {
       </section>
 
       {/* Animated Wave Divider */}
-      <AnimatedWave />
+      <div className="w-full h-16">
+        <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path
+            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+            fill="currentColor"
+            className="text-gray-500/20"
+          />
+        </svg>
+      </div>
 
       {/* About Section */}
       <section id="about" className="py-20 bg-gradient-to-b from-black to-gray-900">
@@ -784,7 +488,15 @@ export default function ESYALandingPage() {
       </section>
 
       {/* Animated Wave Divider */}
-      <AnimatedWave />
+      <div className="w-full h-16">
+        <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path
+            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+            fill="currentColor"
+            className="text-gray-500/20"
+          />
+        </svg>
+      </div>
 
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-black">
